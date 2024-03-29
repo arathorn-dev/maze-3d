@@ -20,7 +20,7 @@ else
 	endif
 	ifeq ($(UNAMEOS),Darwin)
 		RFLAGS = -framework OpenGL -framework Cocoa -framework IOKit -framework CoreAudio -framework CoreVideo
-		LIBSDIR = ./$(SRCDIR)/libs
+		LIBSDIR = ./$(SRCDIR)/libs/macos
     endif
 endif
 

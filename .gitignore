@@ -2,3 +2,4 @@ obj/
 *.o
 my_session
 maze
+*.exe
