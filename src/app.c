@@ -19,7 +19,6 @@ static float _alphaTransition = 0.0f;
     static void _load_screen_app(App_t *const app, size_t index);
     static void _unload_screen_app(App_t *const app);
     static void _draw_transition_app(void);
-
 #if defined(__cplusplus)
     }
 #endif
@@ -84,7 +83,7 @@ MAZE static void _init_app(void)
 MAZE static void _init_screen_app(App_t *const app)
 {
     app->screens = MemAlloc(sizeof(Screen_t) * APP_SCREEN_SIZE);
-    _load_screen_app(app, 0);
+    _load_screen_app(app, 1);
 }
 
 MAZE static void _destroy_screen_app(void)
@@ -163,7 +162,7 @@ MAZE static void _load_screen_app(App_t *const app, size_t index)
             app->currentIndex = index;
             break;
         case 1:
-            app->screens[1] = create_game();
+            app->screens[1] = create_game("data/maps/map_0.data");
             app->currentIndex = index;
             break;
     }

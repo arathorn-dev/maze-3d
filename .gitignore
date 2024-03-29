@@ -1,4 +1,5 @@
 obj/
+.helix/
 *.o
 my_session
 maze

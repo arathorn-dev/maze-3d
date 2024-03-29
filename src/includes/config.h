@@ -2,8 +2,8 @@
 #define __MAZE_CONFIG_H__
 
 #include <stdint.h>
+#include <stdlib.h>
 #include "raylib.h"
-#include "stdlib.h"
 
 #define MAZE
 
@@ -14,5 +14,7 @@
 #define MAZE_TITLE_SCREEN "Maze-3D"
 
 #define MAZE_FPS 30
+
+#define MAZE_TILE 16
 
 #endif

@@ -10,6 +10,7 @@ MAZE typedef enum {
 
 MAZE typedef struct {
     Screen_e type;
+    
 } Screen_t;
 
 
@@ -21,7 +22,7 @@ MAZE typedef struct {
     MAZE void draw_menu(const Screen_t *const screen);
     MAZE void destroy_menu(Screen_t **ptr);
 
-    MAZE Screen_t *create_game(void);
+    MAZE Screen_t *create_game(const char* filename);
     MAZE void update_game(Screen_t *const screen);
     MAZE void draw_game(const Screen_t *const screen);
     MAZE void destroy_game(Screen_t **ptr);
