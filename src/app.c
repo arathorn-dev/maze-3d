@@ -9,6 +9,7 @@ static float _alphaTransition = 0.0f;
 #if defined(__cplusplus)
     extern "C" {
 #endif
+
     static void _init_app(void);
     static void _init_screen_app(App_t *const app);
     static void _destroy_screen_app(void);
@@ -19,6 +20,7 @@ static float _alphaTransition = 0.0f;
     static void _load_screen_app(App_t *const app, size_t index);
     static void _unload_screen_app(App_t *const app);
     static void _draw_transition_app(void);
+
 #if defined(__cplusplus)
     }
 #endif

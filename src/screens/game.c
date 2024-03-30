@@ -1,10 +1,12 @@
 #include "../includes/screens.h"
 #include "../includes/map.h"
+#include "../includes/player.h"
 
 //----------------------------------------------------------------------------------
 //  Statics variables & function declaration.
 //----------------------------------------------------------------------------------
 static Map_t *_map = NULL;
+static Player_t *_player = NULL;
 
 #if defined(__cplusplus)
     extern "C" {
@@ -27,6 +29,8 @@ MAZE Screen_t *create_game(const char *filename)
     
     screen->type = SCREEN_GAME;
     _map = create_map(filename);
+
+    _player = create_player((Vector2){.x= 2 * MAZE_TILE, .y= 2 * MAZE_TILE});
     if (_map == NULL)
     {
         MemFree(screen);
@@ -40,12 +44,14 @@ MAZE Screen_t *create_game(const char *filename)
 MAZE void update_game(Screen_t *const screen)
 {
     update_map(_map);
+    update_player(_player, _map);
 }
 
 MAZE void draw_game(const Screen_t *const screen)
 {
     ClearBackground(GREEN);
     draw_map(_map);
+    draw_player(_player);
 }
 
 MAZE void destroy_game(Screen_t **ptr)
@@ -53,6 +59,7 @@ MAZE void destroy_game(Screen_t **ptr)
     if (*ptr != NULL)
     {
         destroy_map(&_map);
+        destroy_player(&_player);
         _map = NULL;
         MemFree(*ptr);
         *ptr = NULL;

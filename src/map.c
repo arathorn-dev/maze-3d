@@ -177,7 +177,5 @@ MAZE static uint32_t *_create_vector_by_text(char *data, uint32_t width, uint32_
         j = 0;
         i++;
     }
-
-    
     return vector;
 }

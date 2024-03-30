@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "raylib.h"
+#include "raymath.h"
 
 #define MAZE
 
