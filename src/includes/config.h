@@ -13,8 +13,10 @@
 #define MAZE_HEIGHT_SCREEN 480
 #define MAZE_TITLE_SCREEN "Maze-3D"
 
-#define MAZE_FPS 30
+#define MAZE_LINE_TOKEN_MAP "\n"
+#define MAZE_ELEM_TOKEN_MAP ","
 
-#define MAZE_TILE 16
+#define MAZE_FPS 30
+#define MAZE_TILE 32
 
 #endif

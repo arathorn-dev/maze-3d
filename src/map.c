@@ -1,12 +1,7 @@
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 #include "includes/config.h"
 #include "includes/map.h"
 #include "includes/raylib.h"
-
-#define MAZE_LINE_TOKEN_MAP "-"
 
 //----------------------------------------------------------------------------------
 //  Statics function declaration.
@@ -15,17 +10,31 @@
   extern "C" {
 #endif
 
-  MAZE static Map_t *_load_map_by_file(const char *filename);
-  MAZE static uint32_t **_get_matrix_by_text(char *data, int32_t width, int32_t height);
+    MAZE static Map_t *_load_map_by_file(const char *filename);
+
+    MAZE static void _get_dimension_by_text(char *data, uint32_t *const width, uint32_t *const height);
+    MAZE static void _get_width_by_text(char *data, uint32_t *const width);
+    MAZE static uint32_t *_create_vector_by_text(char *data, uint32_t width, uint32_t height);
 
 #if defined(__cplusplus)
   }
 #endif
+
+static char *(*strtok_maze)(char *str, const char *delim, char **saveptr) = NULL;
+
 //----------------------------------------------------------------------------------
 //  Public function implementation.
 //----------------------------------------------------------------------------------
 MAZE Map_t *create_map(const char *filename)
 {
+
+#if defined(_WIN32)
+    strtok_maze = strtok_s;
+#elif defined(__APPLE__)
+    strtok_maze = strtok_r;
+#elif defined(__linux__)
+    strtok_maze = strtok_r;
+#endif
     Map_t *map = _load_map_by_file(filename);
     if (map == NULL)
     {
@@ -51,7 +60,7 @@ MAZE void draw_map(const Map_t *const map)
         for (uint32_t j=0; j < map->width; ++j)
         {
             
-            uint32_t value = map->matrix[i][j];
+            uint32_t value = map->vector[j + (i * map->width)];
             switch(value)
             {
                 case 0:
@@ -77,12 +86,8 @@ MAZE void destroy_map(Map_t **ptr)
 {
     if (*ptr != NULL)
     {
-        for(size_t i=0; i < (*ptr)->height; ++i)
-        {
-            MemFree((*ptr)->matrix[i]);
-            (*ptr)->matrix[i] = NULL;
-        }
-
+        MemFree((*ptr)->vector);
+        (*ptr)->vector = NULL;
         MemFree((*ptr));
         (*ptr) = NULL;
         TraceLog(LOG_DEBUG, "Map_t pointer destroyed successufully.");
@@ -95,42 +100,27 @@ MAZE void destroy_map(Map_t **ptr)
 MAZE static Map_t *_load_map_by_file(const char *filename)
 {
     Map_t *map = NULL;
-    uint32_t **matrix = NULL;
-    int32_t width = 0;
-    int32_t height = 0;
+    uint32_t *vector = NULL;
+    uint32_t width = 0;
+    uint32_t height = 0;
     char *data = NULL;
 
+    char buffer[500];
     if (FileExists(filename))
     {
         data = LoadFileText(filename);
-        char *token = strtok(data, MAZE_LINE_TOKEN_MAP);
-        uint32_t line = 0;
-        while(token != NULL)
-        {
-            if (line == 0)
-            {
-                width = TextToInteger(token);
-            } 
-            else if (line == 1)
-            {
-                height = TextToInteger(token);
-            } 
-            else
-            {
-                matrix = _get_matrix_by_text(token, width, height);
-            }
-            token = strtok(NULL, MAZE_LINE_TOKEN_MAP);
-            line++;
-        }
+        TextCopy(buffer, data);
+        _get_dimension_by_text(buffer, &width, &height);
+        vector = _create_vector_by_text(data, width, height);       
         UnloadFileText(data);
     }
 
-    if (matrix != NULL)
+    if (vector != NULL)
     {
         map = MemAlloc(sizeof(Map_t));
         if (map != NULL)
         {
-            map->matrix = matrix;
+            map->vector = vector;
             map->width = width;
             map->height = height;
         }
@@ -139,32 +129,55 @@ MAZE static Map_t *_load_map_by_file(const char *filename)
     return map;
 }
 
-static uint32_t **_get_matrix_by_text(char *data, int32_t width, int32_t height)
+MAZE static void _get_dimension_by_text(char *data, uint32_t *const width, uint32_t *const height)
 {
-    uint32_t **matrix = MemAlloc(sizeof(uint32_t*) * height);
-    if (matrix == NULL)
-    {
-        return NULL;
-    }
-
-    for (size_t i=0; i < height; ++i)
-    {
-        matrix[i] = MemAlloc(sizeof(uint32_t) * width);
-    }
-
-    // TraceLog(LOG_DEBUG, TextForma("%s", data));
-    char *token = strtok(data, "\n");
-    int32_t i = 0;
+    char *ctx = NULL;
+    char *token = strtok_maze(data, MAZE_LINE_TOKEN_MAP, &ctx);
     while (token != NULL)
     {
-        for (size_t j=0; j < width; ++j)
+        if (*width == 0) _get_width_by_text(token, width);
+        token = strtok_maze(NULL, MAZE_LINE_TOKEN_MAP, &ctx);
+        (*height)++;
+    }    
+}
+
+MAZE static void _get_width_by_text(char *data, uint32_t *const width)
+{
+    char *ctx = NULL;
+    char *token = strtok_maze(data, MAZE_ELEM_TOKEN_MAP, &ctx);
+    while (token != NULL)
+    {
+        token = strtok_maze(NULL, MAZE_ELEM_TOKEN_MAP, &ctx);
+        (*width)++;
+    }
+}
+
+MAZE static uint32_t *_create_vector_by_text(char *data, uint32_t width, uint32_t height)
+{
+    char buffer[500];
+    char *ctx0 = NULL;
+    char *ctx1 = NULL;    
+    uint32_t i = 0;
+    uint32_t j = 0;
+    uint32_t *vector = MemAlloc(sizeof(uint32_t) * width * height);
+
+    TextCopy(buffer, data);
+    char *line = strtok_maze(buffer, MAZE_LINE_TOKEN_MAP, &ctx0);
+    while (line != NULL)
+    {
+        char *token = strtok_maze(line, MAZE_ELEM_TOKEN_MAP, &ctx1);
+        while (token != NULL)
         {
-            const char *value = TextSubtext(token, j, 1);
-            matrix[i][j] = TextToInteger(value);
+            vector[j + (i * width)] = TextToInteger(token);
+            token = strtok_maze(NULL, MAZE_ELEM_TOKEN_MAP, &ctx1);
+            j++;
         }
-        token = strtok(NULL, "\n");
-        i++;  
-      }
-  
-    return matrix;
+        
+        line = strtok_maze(NULL, MAZE_LINE_TOKEN_MAP, &ctx0);
+        j = 0;
+        i++;
+    }
+
+    
+    return vector;
 }

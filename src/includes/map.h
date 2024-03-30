@@ -4,7 +4,7 @@
 #include "config.h"
 
 MAZE typedef struct {
-    uint32_t **matrix;
+    uint32_t *vector;
     uint32_t width;
     uint32_t height;
 } Map_t;
