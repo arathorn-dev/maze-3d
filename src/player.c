@@ -32,10 +32,11 @@ MAZE  Player_t *create_player(Vector2 position)
 
     player->position = position;
     player->dimension = (Vector2){.x=1, .y=1};
-    player->angle = 0.0f;
 
-    player->direction = (Vector2){.x=-1, .y=0};
-    player->camera = (Vector2){.x=0, .y=0.66};
+    player->camera = (Vector2){.x=0, .y=-1};
+    player->direction = (Vector2){.x=1, .y=0};
+
+    player->angle = 0;
 
     TraceLog(LOG_DEBUG, "Player_t pointer created successfully.");
     return player;
@@ -51,12 +52,22 @@ MAZE  void draw_player(const Player_t *const player)
 {
     Vector2 pos = player->position;
     Vector2 dir = player->direction;
+    Vector2 cam = player->camera;
+   
     DrawLine(
         pos.x,
         pos.y,
         pos.x + (10.5 * dir.x),
         pos.y + (10.5 * dir.y),
         GREEN
+    );
+    
+    DrawLine(
+        pos.x + (10.5 * dir.x),
+        pos.y + (10.5 * dir.y),
+        (pos.x + (10.5 * dir.x)) + 10.5 * cam.x,
+        (pos.y + (10.5 * dir.y)) + 10.5 * cam.y,
+        BLUE
     );
     
     DrawRectangle(
@@ -66,7 +77,6 @@ MAZE  void draw_player(const Player_t *const player)
         player->dimension.y,
         RAYWHITE
     );
-
 }
 
 MAZE  void destroy_player(Player_t **ptr)
@@ -84,35 +94,29 @@ MAZE  void destroy_player(Player_t **ptr)
 //----------------------------------------------------------------------------------
 MAZE static void _movement_player(Player_t *const player, const Map_t *const map )
 {
-    Vector2 direction = {0};
-    float angle = player->angle;
+    Vector2 (*vector2Fn)(Vector2, Vector2) = NULL;
     if (IsKeyDown(KEY_W))
     {
-        direction.y = -1 * sinf(angle);
+        vector2Fn = Vector2Add;
     }
-    else if (IsKeyDown(KEY_S))
+    else if(IsKeyDown(KEY_S))
     {
-        direction.y = 1 * sinf(angle);
+        vector2Fn = Vector2Subtract;
     }
-    else if (IsKeyDown(KEY_A))
+    
+    if (vector2Fn != NULL)
     {
-        direction.x = -1 * cosf(angle);
-    }
-    else if (IsKeyDown(KEY_D))
-    {
-        direction.x = 1 * cosf(angle);
-    }
+        Vector2 position = vector2Fn(player->position, player->direction);
+        Vector2 mapPosition = Vector2Scale(position, (float)1/MAZE_TILE);
 
-    Vector2 position = Vector2Add(player->position, direction);
-    Vector2 mapPosition = Vector2Scale(position, (float)1/MAZE_TILE);
+        uint32_t i = mapPosition.x;
+        uint32_t j = mapPosition.y;
 
-    uint32_t i = mapPosition.x;
-    uint32_t j = mapPosition.y;
-
-    uint32_t value = map->vector[j + (i * map->width) ];
-    if (value == 0)
-    {
-        player->position = position;
+        uint32_t value = map->vector[j + (i * map->width) ];
+        if (value == 0)
+        {
+            player->position = position;
+        }
     }
 }
 
@@ -121,35 +125,32 @@ MAZE static void _rotation_player(Player_t *const player)
     float angle = player->angle;
     if (IsKeyDown(KEY_LEFT))
     {
-        angle -= 5;
+        angle -= 0.1;
     }
     else if (IsKeyDown(KEY_RIGHT))
     {
-        angle += 5;
+        angle += 0.1;
     }
 
-    angle = Clamp(angle, 0, 360);       
-    if (angle == 360)
+    if (angle != player->angle)
     {
-        angle = 0;
-    } else if(angle == 0)
-    {
-        angle = 360;
-    }
-    player->angle = angle;    
-    angle = DEG2RAD * angle;
-    player->direction.x = cosf(angle);
-    player->direction.y = sinf(angle);
+        angle = Clamp(angle, 0, MAZE_2PI);       
+        if (angle == MAZE_2PI)
+        {
+            angle = 0;
+        } else if(angle == 0)
+        {
+            angle = MAZE_2PI;
+        }
+        player->angle = angle;    
+
+        //    x        y
+        // [cos(x)  -sin(x)]
+        // [sin(x)  cos(x)]
+        player->camera.x = cosf(angle + PI/2);
+        player->camera.y = -sinf(angle + PI/2);
     
-    // Vector2 direction = (Vector2){
-    //     .x=cosf(angle) * player->direction.x,
-    //     .y=sinf(angle) * player->direction.y
-    // };
-
-    // Vector2 camera = (Vector2){
-    //     .x=-sinf(angle) * player->camera.x,
-    //     .y=cosf(angle) * player->camera.y
-    // };
-    // player->direction = direction;
-    // player->camera = camera;
+        player->direction.x = cosf(angle);
+        player->direction.y = sinf(angle);
+    }
 }

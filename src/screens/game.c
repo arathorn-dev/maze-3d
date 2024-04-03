@@ -49,7 +49,7 @@ MAZE void update_game(Screen_t *const screen)
 
 MAZE void draw_game(const Screen_t *const screen)
 {
-    ClearBackground(GREEN);
+    ClearBackground(BLACK);
     draw_map(_map);
     draw_player(_player);
 }

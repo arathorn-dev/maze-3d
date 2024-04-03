@@ -6,6 +6,8 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#define MAZE_2PI 2 * PI
+
 #define MAZE
 
 #define MAZE_DEBUG 1
